@@ -5,3 +5,4 @@
 <p> </p>
 <h3>Instructions</h3>
 <p>Press G to open the menu</p>
+<p>When an ability is active just look at the target mob --- only for lazer things</p>
