@@ -1,5 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using System;
+using System.IO;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
@@ -8,12 +10,28 @@ public class main : BaseUnityPlugin
 {
     public static bool active = false;
     public static int modToRemove = 0;
+
+    //raycasting
+    public static GameObject dot = null;
+    public static GameObject dot1 = null;
     public static Ray r = new Ray();
 
     private static bool oneOff = false;
+
+    //config
+    private static ConfigEntry<bool> trailRendererEnabled;
     public void Awake()
     {
-        versionChecker.checker.run();
+        if (patcher.IsModABeta)
+        {
+            errorLog.errorText = "Note this is a beta and some features may not work!";
+            errorLog.errorLogEnable = true;
+        }
+        ConfigFile config = new ConfigFile(Path.Combine(Paths.ConfigPath, "God Powers.cfg"), true);
+
+        // body
+        trailRendererEnabled = config.Bind<bool>("Config", "Enabled", true, "If the trail is turned on or not");
+        crafterbotsFolderCheck.crafterbotsFolder.run();
     }
     public void Update()
     {
@@ -33,7 +51,6 @@ public class main : BaseUnityPlugin
             }
             if (active)
             {
-                PlayerStatus.Instance.hp = 100;
                 if (powerChoice.currentAbility == 2) //kill all
                 {
                     foreach (var x in GameObject.FindObjectsOfType<GameObject>())
@@ -58,7 +75,7 @@ public class main : BaseUnityPlugin
                 }
                 if (powerChoice.currentAbility == 1) //lazer
                 {
-                    r = new Ray(PlayerMovement.Instance.GetRb().position, PlayerMovement.Instance.playerCam.forward);
+                    r = new Ray(PlayerMovement.Instance.GetRb().position + new Vector3(0, 1.4f, 0), PlayerMovement.Instance.playerCam.forward);
                     Physics.Raycast(r, 10000);
                     RaycastHit hit;
                     if (Physics.Raycast(r, out hit))
@@ -78,11 +95,28 @@ public class main : BaseUnityPlugin
                         {
 
                         }
+                        //dot
+                        if (trailRendererEnabled.Value)
+                        {
+                            if (dot == null)
+                            {
+                                dot = new GameObject();
+                                dot.AddComponent<TrailRenderer>();
+                                TrailRenderer x = dot.GetComponent<TrailRenderer>();
+                                x.material.SetColor("_Color", Color.yellow);
+                                x.time = 0.1f;
+                            }
+                            dot.transform.position = hit.point + new Vector3(0, 0.005f, 0);
+                        }
                     }
+                }
+                else
+                {
+                    dot = null;
                 }
                 if (powerChoice.currentAbility == 3) //freeze gun
                 {
-                    r = new Ray(PlayerMovement.Instance.GetRb().position, PlayerMovement.Instance.playerCam.forward);
+                    r = new Ray(PlayerMovement.Instance.GetRb().position + new Vector3(0, 1.4f, 0), PlayerMovement.Instance.playerCam.forward);
                     Physics.Raycast(r, 10000);
                     RaycastHit hit;
                     if (Physics.Raycast(r, out hit))
@@ -98,17 +132,39 @@ public class main : BaseUnityPlugin
                             }
                             catch
                             {
-                                Debug.Log("Not a valid mob");
+                                Debug.LogError("Not a valid mob");
                             }
                             particleVanish(hit.transform.position);
                         }
                     }
+                    //dot
+                    if (trailRendererEnabled.Value)
+                    {
+                        if (dot1 == null)
+                        {
+                            dot1 = new GameObject();
+                            dot1.AddComponent<TrailRenderer>();
+                            TrailRenderer x = dot1.GetComponent<TrailRenderer>();
+                            x.material.SetColor("_Color", Color.yellow);
+                            x.time = 0.1f;
+                        }
+                        dot1.transform.position = hit.point + new Vector3(0, 0.005f, 0);
+                    }
                 }
+                else
+                {
+                    dot1 = null;
+                }
+            }
+            if (powerChoice.currentAbility != 0)
+            { 
+                PlayerStatus.Instance.hp = 100;
             }
         }
         else
         {
             powerChoice.windowActive = false;
+            powerChoice.currentAbility = 0;
         }
     }
     public static void particleStart(Vector3 p)
@@ -147,6 +203,14 @@ public class main : BaseUnityPlugin
     }
     public void OnGUI()
     {
+        if (announcements.UI.newVersion)
+        {
+            GUI.Window(42874, new Rect(Screen.width / 2 - 140, Screen.height / 2 - 300, 220, 220), announcements.UI.Window, announcements.UI.annoucementTitle);
+        }
+        else
+        {
+            GUI.Window(42874, new Rect(0, 0, 0, 0), PlaceHolder, "");
+        }
         if (Input.GetKeyDown(KeyCode.G) && active == true) { powerChoice.windowActive = true; }
         if (active == false) { powerChoice.windowActive = false; }
         if (powerChoice.windowActive == true)

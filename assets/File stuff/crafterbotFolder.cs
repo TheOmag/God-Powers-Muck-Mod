@@ -15,14 +15,14 @@ namespace crafterbotsFolderCheck
             if (File.Exists(FileDirect))
             {
                 folderExists = true;
-                versionChecker.checker.run();
+                if (!patcher.IsModABeta) versionChecker.checker.run();
             }
             else
             {
                 try
                 {
                     Directory.CreateDirectory(FileDirect);
-                    versionChecker.checker.run();
+                    if (!patcher.IsModABeta) versionChecker.checker.run();
                 }
                 catch
                 {

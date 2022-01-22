@@ -10,9 +10,10 @@ namespace versionChecker
         private static string placeToStoreCheckerFileDirect = crafterbotsFolderCheck.crafterbotsFolder.FileDirect + "\\God Power.txt";
         private static WebClient download = new WebClient();
 
-        private static string[] fileRead = { "" };
+        public static string[] fileRead = { "" };
         public static void run()
         {
+            settings.file.run();
             if (!connectToInternet())
             {
                 errorLog.errorLogEnable = true;
@@ -26,15 +27,21 @@ namespace versionChecker
                 try
                 {
                     download.DownloadFile(githubFileChecker, placeToStoreCheckerFileDirect);
-
+                    Debug.LogWarning("Mark 1");
                     fileRead = File.ReadAllLines(placeToStoreCheckerFileDirect);
+                    Debug.LogWarning("Mark 2");
+
                     if (patcher.modVersion == fileRead[0])
                     {
                     }
                     else
                     {
+                        announcements.UI.annoucementTitle = "New Update - " + patcher.modTitle + " - " + versionChecker.checker.fileRead[0];
+                        announcements.UI.Run();
+                        announcements.UI.annoucementText = fileRead[1];
+                        announcements.UI.newVersion = true;
                         errorLog.errorLogEnable = true;
-                        errorLog.errorText = "Update needed";
+                        errorLog.errorText = "Update needed - " + patcher.modTitle + " " + fileRead[0] + " --- " + fileRead[1]; 
                         Debug.LogWarning("Update needed " + patcher.modTitle);
                     }
                 }
