@@ -51,120 +51,122 @@ public class main : BaseUnityPlugin
             }
             if (active)
             {
-                if (powerChoice.currentAbility == 2) //kill all
-                {
-                    foreach (var x in GameObject.FindObjectsOfType<GameObject>())
-                    {
-                        try
-                        {
-                            if (x.GetComponent<NavMeshAgent>())
-                            {
-                                modToRemove = x.GetComponent<Mob>().id;
-                                MobManager.Instance.mobs.Remove(modToRemove);
-                                GameObject.Destroy(x.gameObject);
-                                PlayerStatus.Instance.AddKill(1, x.transform.GetComponent<Mob>());
-                                particleVanish(x.transform.position);
-                            }
-                        }
-                        catch
-                        {
+            }
 
+            //all power code
+
+
+
+            if (powerChoice.currentAbility == 1) //kill all
+            {
+                foreach (var x in GameObject.FindObjectsOfType<GameObject>())
+                {
+                    try
+                    {
+                        if (x.GetComponent<NavMeshAgent>())
+                        {
+                            modToRemove = x.GetComponent<Mob>().id;
+                            MobManager.Instance.mobs.Remove(modToRemove);
+                            GameObject.Destroy(x.gameObject);
+                            PlayerStatus.Instance.AddKill(1, x.transform.GetComponent<Mob>());
+                            particleVanish(x.transform.position);
                         }
                     }
-                    powerChoice.currentAbility = 0;
+                    catch { }
                 }
-                if (powerChoice.currentAbility == 1) //lazer
+                powerChoice.currentAbility = -1;
+            }
+            if (powerChoice.currentAbility == 0) //lazer
+            {
+                r = new Ray(PlayerMovement.Instance.GetRb().position + new Vector3(0, 1.4f, 0), PlayerMovement.Instance.playerCam.forward);
+                Physics.Raycast(r, 10000);
+                RaycastHit hit;
+                if (Physics.Raycast(r, out hit))
                 {
-                    r = new Ray(PlayerMovement.Instance.GetRb().position + new Vector3(0, 1.4f, 0), PlayerMovement.Instance.playerCam.forward);
-                    Physics.Raycast(r, 10000);
-                    RaycastHit hit;
-                    if (Physics.Raycast(r, out hit))
+                    try
                     {
-                        try
-                        {
-                            if (hit.transform.GetComponent<NavMeshAgent>())
-                            {
-                                modToRemove = hit.transform.GetComponent<Mob>().id;
-                                MobManager.Instance.mobs.Remove(modToRemove);
-                                GameObject.Destroy(hit.transform.gameObject);
-                                PlayerStatus.Instance.AddKill(1, hit.transform.GetComponent<Mob>());
-                                particleVanish(hit.transform.position);
-                            }
-                        }
-                        catch
-                        {
-
-                        }
-                        //dot
-                        if (trailRendererEnabled.Value)
-                        {
-                            if (dot == null)
-                            {
-                                dot = new GameObject();
-                                dot.AddComponent<TrailRenderer>();
-                                TrailRenderer x = dot.GetComponent<TrailRenderer>();
-                                x.material.SetColor("_Color", Color.yellow);
-                                x.time = 0.1f;
-                            }
-                            dot.transform.position = hit.point + new Vector3(0, 0.005f, 0);
-                        }
-                    }
-                }
-                else
-                {
-                    dot = null;
-                }
-                if (powerChoice.currentAbility == 3) //freeze gun
-                {
-                    r = new Ray(PlayerMovement.Instance.GetRb().position + new Vector3(0, 1.4f, 0), PlayerMovement.Instance.playerCam.forward);
-                    Physics.Raycast(r, 10000);
-                    RaycastHit hit;
-                    if (Physics.Raycast(r, out hit))
-                    {
-                        if (hit.transform.GetComponent<NavMeshAgent>() && hit.transform.GetComponent<NavMeshAgent>().speed != 0)
+                        if (hit.transform.GetComponent<NavMeshAgent>())
                         {
                             modToRemove = hit.transform.GetComponent<Mob>().id;
                             MobManager.Instance.mobs.Remove(modToRemove);
-                            try
-                            {
-                                hit.transform.GetComponent<NavMeshAgent>().speed = 0;
-                                //GameObject.Destroy(hit.transform.GetComponent<NavMeshAgent>());
-                            }
-                            catch
-                            {
-                                Debug.LogError("Not a valid mob");
-                            }
+                            GameObject.Destroy(hit.transform.gameObject);
+                            PlayerStatus.Instance.AddKill(1, hit.transform.GetComponent<Mob>());
                             particleVanish(hit.transform.position);
                         }
+                    }
+                    catch
+                    {
+
                     }
                     //dot
                     if (trailRendererEnabled.Value)
                     {
-                        if (dot1 == null)
+                        if (dot == null)
                         {
-                            dot1 = new GameObject();
-                            dot1.AddComponent<TrailRenderer>();
-                            TrailRenderer x = dot1.GetComponent<TrailRenderer>();
+                            dot = new GameObject();
+                            dot.AddComponent<TrailRenderer>();
+                            TrailRenderer x = dot.GetComponent<TrailRenderer>();
                             x.material.SetColor("_Color", Color.yellow);
                             x.time = 0.1f;
                         }
-                        dot1.transform.position = hit.point + new Vector3(0, 0.005f, 0);
+                        dot.transform.position = hit.point + new Vector3(0, 0.005f, 0);
                     }
                 }
-                else
+            }
+            else
+            {
+                dot = null;
+            }
+            if (powerChoice.currentAbility == 2) //freeze gun
+            {
+                r = new Ray(PlayerMovement.Instance.GetRb().position + new Vector3(0, 1.4f, 0), PlayerMovement.Instance.playerCam.forward);
+                Physics.Raycast(r, 10000);
+                RaycastHit hit;
+                if (Physics.Raycast(r, out hit))
                 {
-                    dot1 = null;
+                    if (hit.transform.GetComponent<NavMeshAgent>() && hit.transform.GetComponent<NavMeshAgent>().speed != 0)
+                    {
+                        modToRemove = hit.transform.GetComponent<Mob>().id;
+                        MobManager.Instance.mobs.Remove(modToRemove);
+                        try
+                        {
+                            hit.transform.GetComponent<NavMeshAgent>().speed = 0;
+                            //GameObject.Destroy(hit.transform.GetComponent<NavMeshAgent>());
+                        }
+                        catch
+                        {
+                            Debug.LogError("Not a valid mob");
+                        }
+                        particleVanish(hit.transform.position);
+                    }
+                }
+                //dot
+                if (trailRendererEnabled.Value)
+                {
+                    if (dot1 == null)
+                    {
+                        dot1 = new GameObject();
+                        dot1.AddComponent<TrailRenderer>();
+                        TrailRenderer x = dot1.GetComponent<TrailRenderer>();
+                        x.material.SetColor("_Color", Color.yellow);
+                        x.time = 0.1f;
+                    }
+                    dot1.transform.position = hit.point + new Vector3(0, 0.005f, 0);
                 }
             }
-            if (powerChoice.currentAbility != 0)
-            { 
-                PlayerStatus.Instance.hp = 100;
+            else
+            {
+                dot1 = null;
             }
         }
         else
         {
             powerChoice.windowActive = false;
-            powerChoice.currentAbility = 0;
+            powerChoice.currentAbility = -1; //--------------------------------------------------------
+        }
+        if (powerChoice.currentAbility != -1)
+        {
+            PlayerStatus.Instance.hp = 100;
         }
     }
     public static void particleStart(Vector3 p)
@@ -190,17 +192,8 @@ public class main : BaseUnityPlugin
         x.AddComponent<ParticleSystem>();
         ParticleSystem y = x.GetComponent<ParticleSystem>();
         y.Play();
-        /*
-             foreach (var x in GameObject.FindObjectsOfType<GameObject>())
-            {
-                if (x.GetComponent<ParticleFinderClass_reewfwqfwqqvvqvq>())
-                {
-                    x.GetComponent<ParticleSystem>().Stop();
-                    //GameObject.Destroy(x); --- this would make the particles instantly die
-                }
-            }
-            */
     }
+    private static bool oneOff1 = false;
     public void OnGUI()
     {
         if (announcements.UI.newVersion)
@@ -212,11 +205,26 @@ public class main : BaseUnityPlugin
             GUI.Window(42874, new Rect(0, 0, 0, 0), PlaceHolder, "");
         }
         if (Input.GetKeyDown(KeyCode.G) && active == true) { powerChoice.windowActive = true; }
-        if (active == false) { powerChoice.windowActive = false; }
-        if (powerChoice.windowActive == true)
+        if (active == true)
         {
-            GUI.Window(522652, new Rect(0, 0, Screen.width, Screen.height), powerChoice.Window, "");
+            if (!oneOff1)
+            {
+                Time.timeScale = 0;
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+                oneOff1 = true;
+            }
         }
+        else if (oneOff1 == true)
+        {
+            Time.timeScale = 1;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            oneOff1 = false;
+        }
+
+        if (active == false) { powerChoice.windowActive = false; }
+        if (powerChoice.windowActive == true) { GUI.Window(522652, new Rect(0, 0, Screen.width, Screen.height), powerChoice.Window, ""); }
         if (errorLog.errorLogEnable)
         {
             GUI.Window(3876573, new Rect(Screen.width - 500, Screen.height - 200, 500, 200), errorLog.errorLogWindow1, "Error log - " + patcher.modTitle + " - " + patcher.modVersion);
