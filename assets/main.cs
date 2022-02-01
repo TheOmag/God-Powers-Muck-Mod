@@ -1,25 +1,17 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using System;
 using System.IO;
-using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 [BepInPlugin(patcher.modPath, patcher.modTitle, patcher.modVersion)]
 public class main : BaseUnityPlugin
 {
-    public static bool active = false;
-    public static int modToRemove = 0;
-
-    //raycasting
-    public static GameObject dot = null;
-    public static GameObject dot1 = null;
-    public static Ray r = new Ray();
-
-    private static bool oneOff = false;
-
     //config
-    private static ConfigEntry<bool> trailRendererEnabled;
+    public static ConfigEntry<bool> trailRendererEnabled;
+    public static ConfigEntry<float> pushSpeed;
+    //public static ConfigEntry<float> FlySpeed;
+
     public void Awake()
     {
         if (patcher.IsModABeta)
@@ -27,185 +19,47 @@ public class main : BaseUnityPlugin
             errorLog.errorText = "Note this is a beta and some features may not work!";
             errorLog.errorLogEnable = true;
         }
+        //config
         ConfigFile config = new ConfigFile(Path.Combine(Paths.ConfigPath, "God Powers.cfg"), true);
 
         // body
         trailRendererEnabled = config.Bind<bool>("Config", "Enabled", true, "If the trail is turned on or not");
+        pushSpeed = config.Bind<float>("Config", "Push Mob Speed", 25, "");
+        //FlySpeed = config.Bind<float>("Config", "Fly speed", 50, "");
+
         crafterbotsFolderCheck.crafterbotsFolder.run();
     }
     public void Update()
     {
-        if (SceneManager.GetActiveScene().name != "Menu")
+        Powers.Run();
+        if(SceneManager.GetActiveScene().name == "Menu")
         {
-
-            if (Input.GetKeyDown(KeyCode.G))
-            {
-                if (active == false)
-                {
-                    active = true;
-                }
-                else
-                {
-                    active = false;
-                }
-            }
-            if (active)
-            {
-            }
-
-            //all power code
-
-
-
-            if (powerChoice.currentAbility == 1) //kill all
-            {
-                foreach (var x in GameObject.FindObjectsOfType<GameObject>())
-                {
-                    try
-                    {
-                        if (x.GetComponent<NavMeshAgent>())
-                        {
-                            modToRemove = x.GetComponent<Mob>().id;
-                            MobManager.Instance.mobs.Remove(modToRemove);
-                            GameObject.Destroy(x.gameObject);
-                            PlayerStatus.Instance.AddKill(1, x.transform.GetComponent<Mob>());
-                            particleVanish(x.transform.position);
-                        }
-                    }
-                    catch { }
-                }
-                powerChoice.currentAbility = -1;
-            }
-            if (powerChoice.currentAbility == 0) //lazer
-            {
-                r = new Ray(PlayerMovement.Instance.GetRb().position + new Vector3(0, 1.4f, 0), PlayerMovement.Instance.playerCam.forward);
-                Physics.Raycast(r, 10000);
-                RaycastHit hit;
-                if (Physics.Raycast(r, out hit))
-                {
-                    try
-                    {
-                        if (hit.transform.GetComponent<NavMeshAgent>())
-                        {
-                            modToRemove = hit.transform.GetComponent<Mob>().id;
-                            MobManager.Instance.mobs.Remove(modToRemove);
-                            GameObject.Destroy(hit.transform.gameObject);
-                            PlayerStatus.Instance.AddKill(1, hit.transform.GetComponent<Mob>());
-                            particleVanish(hit.transform.position);
-                        }
-                    }
-                    catch
-                    {
-
-                    }
-                    //dot
-                    if (trailRendererEnabled.Value)
-                    {
-                        if (dot == null)
-                        {
-                            dot = new GameObject();
-                            dot.AddComponent<TrailRenderer>();
-                            TrailRenderer x = dot.GetComponent<TrailRenderer>();
-                            x.material.SetColor("_Color", Color.yellow);
-                            x.time = 0.1f;
-                        }
-                        dot.transform.position = hit.point + new Vector3(0, 0.005f, 0);
-                    }
-                }
-            }
-            else
-            {
-                dot = null;
-            }
-            if (powerChoice.currentAbility == 2) //freeze gun
-            {
-                r = new Ray(PlayerMovement.Instance.GetRb().position + new Vector3(0, 1.4f, 0), PlayerMovement.Instance.playerCam.forward);
-                Physics.Raycast(r, 10000);
-                RaycastHit hit;
-                if (Physics.Raycast(r, out hit))
-                {
-                    if (hit.transform.GetComponent<NavMeshAgent>() && hit.transform.GetComponent<NavMeshAgent>().speed != 0)
-                    {
-                        modToRemove = hit.transform.GetComponent<Mob>().id;
-                        MobManager.Instance.mobs.Remove(modToRemove);
-                        try
-                        {
-                            hit.transform.GetComponent<NavMeshAgent>().speed = 0;
-                            //GameObject.Destroy(hit.transform.GetComponent<NavMeshAgent>());
-                        }
-                        catch
-                        {
-                            Debug.LogError("Not a valid mob");
-                        }
-                        particleVanish(hit.transform.position);
-                    }
-                }
-                //dot
-                if (trailRendererEnabled.Value)
-                {
-                    if (dot1 == null)
-                    {
-                        dot1 = new GameObject();
-                        dot1.AddComponent<TrailRenderer>();
-                        TrailRenderer x = dot1.GetComponent<TrailRenderer>();
-                        x.material.SetColor("_Color", Color.yellow);
-                        x.time = 0.1f;
-                    }
-                    dot1.transform.position = hit.point + new Vector3(0, 0.005f, 0);
-                }
-            }
-            else
-            {
-                dot1 = null;
-            }
+            Powers.oneOff1 = true;
         }
         else
         {
-            powerChoice.windowActive = false;
-            powerChoice.currentAbility = -1; //--------------------------------------------------------
+            //Fly.Reset();
         }
-        if (powerChoice.currentAbility != -1)
-        {
-            PlayerStatus.Instance.hp = 100;
-        }
-    }
-    public static void particleStart(Vector3 p)
-    {
-        GameObject x = new GameObject();
-        x.transform.position = p;
-        x.name = "hsrtazzhsjywjhwjywtj";
-        x.AddComponent<timerParticle>();
-        x.GetComponent<timerParticle>().self = x;
-        x.AddComponent<ParticleSystem>();
-        ParticleSystem y = x.GetComponent<ParticleSystem>();
-        y.GetComponent<Renderer>().material.color = Color.yellow;
-        y.Play();
+        //popoutManager.main.Update();
     }
 
-    public static void particleVanish(Vector3 p)
-    {
-        GameObject x = new GameObject();
-        x.transform.position = p;
-        x.name = "gargagargaggajdtjshsaagtg";
-        x.AddComponent<timerParticle>();
-        x.GetComponent<timerParticle>().self = x;
-        x.AddComponent<ParticleSystem>();
-        ParticleSystem y = x.GetComponent<ParticleSystem>();
-        y.Play();
-    }
     private static bool oneOff1 = false;
     public void OnGUI()
     {
-        if (announcements.UI.newVersion)
+        if (announcementsPopout.InGameUI.newVersion)
         {
-            GUI.Window(42874, new Rect(Screen.width / 2 - 140, Screen.height / 2 - 300, 220, 220), announcements.UI.Window, announcements.UI.annoucementTitle);
+            GUI.Window(42874, new Rect(Screen.width / 2 - 140, Screen.height / 2 - 300, 220, 220), announcementsPopout.InGameUI.Window, announcementsPopout.InGameUI.annoucementTitle);
+        }
+        else if (announcementsPopout.InGameUI.normalAnnouncement)
+        {
+            GUI.Window(42874, new Rect(Screen.width / 2 - 140, Screen.height / 2 - 300, 220, 220), announcementsPopout.InGameUI.Window, announcementsPopout.InGameUI.annoucementTitle);
         }
         else
         {
             GUI.Window(42874, new Rect(0, 0, 0, 0), PlaceHolder, "");
         }
-        if (Input.GetKeyDown(KeyCode.G) && active == true) { powerChoice.windowActive = true; }
-        if (active == true)
+        if (Input.GetKeyDown(KeyCode.G) && Powers.active == true) { powerChoice.windowActive = true; }
+        if (Powers.active == true)
         {
             if (!oneOff1)
             {
@@ -223,7 +77,7 @@ public class main : BaseUnityPlugin
             oneOff1 = false;
         }
 
-        if (active == false) { powerChoice.windowActive = false; }
+        if (Powers.active == false) { powerChoice.windowActive = false; }
         if (powerChoice.windowActive == true) { GUI.Window(522652, new Rect(0, 0, Screen.width, Screen.height), powerChoice.Window, ""); }
         if (errorLog.errorLogEnable)
         {
@@ -241,6 +95,20 @@ public class main : BaseUnityPlugin
 }
 
 //components to add
+
+public class AIforFriend : MonoBehaviour
+{
+    public GameObject self;
+    private void Awake()
+    {
+        GameObject.Destroy(self.GetComponent<Mob>());
+    }
+    private void Update()
+    {
+        var x = self.GetComponent<NavMeshAgent>();
+       x.destination = Powers.findGround.transform.position;
+    }
+}
 public class timerParticle : MonoBehaviour
 {
     public GameObject self;

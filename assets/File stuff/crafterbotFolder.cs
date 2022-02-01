@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Net;
 using UnityEngine;
 
 namespace crafterbotsFolderCheck
@@ -15,14 +14,16 @@ namespace crafterbotsFolderCheck
             if (File.Exists(FileDirect))
             {
                 folderExists = true;
-                if (!patcher.IsModABeta) versionChecker.checker.run();
+                settings.file.run();
+                if (!patcher.IsModABeta){ versionChecker.checker.run();}
             }
             else
             {
                 try
                 {
                     Directory.CreateDirectory(FileDirect);
-                    if (!patcher.IsModABeta) versionChecker.checker.run();
+                    settings.file.run();
+                    if (!patcher.IsModABeta){versionChecker.checker.run(); }
                 }
                 catch
                 {

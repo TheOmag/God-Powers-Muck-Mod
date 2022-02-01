@@ -12,8 +12,12 @@ public class powerChoice
     private static bool oneOff = false;
     public static void Window(int windowID)
     {
+        //info
         GUI.color = Color.yellow;
         GUI.backgroundColor = Color.yellow;
+
+        //top
+
         if (oneOff == false)
         {
 
@@ -23,19 +27,30 @@ public class powerChoice
                 patcher.buttons[y] = patcher.buttons[x] = GUI.Button(patcher.buttonPos[x], patcher.modAbilitysTitle[x]);
             }
         }
-        foreach (int x in patcher.buttonArrayPlaceholder)
+
+        foreach (int x in patcher.modAbilitysId)
         {
             if (patcher.buttons[x] == true)
             {
                 currentAbility = x;
             }
         }
+
+
+
+
+
+
+
+        //bottom
+
         if (GUI.Button(new Rect(Screen.width / 2 - 250, Screen.height - 195, 500, 200), "Turn Off Current Ability"))
         {
             currentAbility = -1;
-            main.active = false;
+            Powers.active = false;
             windowActive = false;
         }
+
         GUI.Label(new Rect(Screen.width / 2 + 400, 1000, 500, 500), "Current Ability: " + currentAbilityString);
 
 
@@ -55,22 +70,29 @@ public class powerChoice
         {
             currentAbilityString = "Freeze laser selected";
         }
+        else if (currentAbility == 3)
+        {
+            currentAbilityString = "Mob Push selected";
+        }
+        else if (currentAbility == 4)
+        {
+            currentAbilityString = "Infinite Stamina selected";
+        }
+        else if (currentAbility == 5)
+        {
+            currentAbilityString = "Infinite Health selected";
+        }
+        else if (currentAbility == 6)
+        {
+            currentAbilityString = "Friends selected";
+        }
+        else if (currentAbility == 7)
+        {
+            currentAbilityString = "No-clip selected";
+        }
+        else if (currentAbility == 8)
+        {
+            currentAbilityString = "Cow spawner selected";
+        }
     }
 }
-/* 
- if (GUI.Button(new Rect(5, 100, 500, 500), patcher.modAbilitysTitle[0]))
-         {
-             currentAbility = 1; 
-             windowActive = false;
-         }
-         if (GUI.Button(new Rect(Screen.width / 2 - 250, 100, 500, 500), patcher.modAbilitysTitle[1]))
-         {
-             currentAbility = 2;
-             windowActive = false;
-         }
-         if (GUI.Button(new Rect(Screen.width - 500 - 5, 100, 500, 500), patcher.modAbilitysTitle[2]))
-         {
-             currentAbility = 3;
-             windowActive = false;
-         }
-*/
